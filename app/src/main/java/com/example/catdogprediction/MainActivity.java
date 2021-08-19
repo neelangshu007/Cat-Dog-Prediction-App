@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.catdogprediction.ml.Model;
 
@@ -54,49 +55,52 @@ public class MainActivity extends AppCompatActivity {
         predictButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                img = Bitmap.createScaledBitmap(img, 128,128, true);
+                if (predictionImageView.getDrawable() == null) {
+                    Toast.makeText(MainActivity.this, "Please Upload an Image First", Toast.LENGTH_SHORT).show();
+                } else {
+                    img = Bitmap.createScaledBitmap(img, 128, 128, true);
 
-                try {
-                    Model model = Model.newInstance(getApplicationContext());
+                    try {
+                        Model model = Model.newInstance(getApplicationContext());
 
-                    // Creates inputs for reference.
-                    TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 128, 128, 3}, DataType.FLOAT32);
+                        // Creates inputs for reference.
+                        TensorBuffer inputFeature0 = TensorBuffer.createFixedSize(new int[]{1, 128, 128, 3}, DataType.FLOAT32);
 
-                    TensorImage tensorImage = new TensorImage(DataType.FLOAT32);
-                    tensorImage.load(img);
-                    ByteBuffer byteBuffer = tensorImage.getBuffer();
+                        TensorImage tensorImage = new TensorImage(DataType.FLOAT32);
+                        tensorImage.load(img);
+                        ByteBuffer byteBuffer = tensorImage.getBuffer();
 
-                    inputFeature0.loadBuffer(byteBuffer);
+                        inputFeature0.loadBuffer(byteBuffer);
 
-                    // Runs model inference and gets result.
-                    Model.Outputs outputs = model.process(inputFeature0);
-                    TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
+                        // Runs model inference and gets result.
+                        Model.Outputs outputs = model.process(inputFeature0);
+                        TensorBuffer outputFeature0 = outputs.getOutputFeature0AsTensorBuffer();
 
-                    // Releases model resources if no longer used.
-                    model.close();
+                        // Releases model resources if no longer used.
+                        model.close();
 
 //                    predictionResultTextview.setText(outputFeature0.getFloatArray()[0] + "\n" + outputFeature0.getFloatArray()[1]);
-                    if(outputFeature0.getFloatArray()[0] == 1.0 && outputFeature0.getFloatArray()[1] == 0.0){
-                        predictionResultTextview.setText("Cat");
-                    }else if(outputFeature0.getFloatArray()[0] == 0.0 && outputFeature0.getFloatArray()[1] == 1.0){
-                        predictionResultTextview.setText("Dog");
-                    }else if(outputFeature0.getFloatArray()[0] == 0.0 && outputFeature0.getFloatArray()[1] < 1.0 && outputFeature0.getFloatArray()[1] > 0.0){
-                        predictionResultTextview.setText("Dog");
-                    }
-                    else if (outputFeature0.getFloatArray()[1] == 0.0 && outputFeature0.getFloatArray()[0] < 1.0 && outputFeature0.getFloatArray()[0] > 0.0){
-                        predictionResultTextview.setText("Cat");
-                    }
-                    else{
-                        predictionResultTextview.setText("Neither a Cat or Dog");
+                        if (outputFeature0.getFloatArray()[0] == 1.0 && outputFeature0.getFloatArray()[1] == 0.0) {
+                            predictionResultTextview.setText("Cat");
+                        } else if (outputFeature0.getFloatArray()[0] == 0.0 && outputFeature0.getFloatArray()[1] == 1.0) {
+                            predictionResultTextview.setText("Dog");
+                        } else if (outputFeature0.getFloatArray()[0] == 0.0 && outputFeature0.getFloatArray()[1] < 1.0 && outputFeature0.getFloatArray()[1] > 0.0) {
+                            predictionResultTextview.setText("Dog");
+                        } else if (outputFeature0.getFloatArray()[1] == 0.0 && outputFeature0.getFloatArray()[0] < 1.0 && outputFeature0.getFloatArray()[0] > 0.0) {
+                            predictionResultTextview.setText("Cat");
+                        } else {
+                            predictionResultTextview.setText("Neither a Cat or Dog");
+                        }
+
+                    } catch (IOException e) {
+                        // TODO Handle the exception
                     }
 
-                } catch (IOException e) {
-                    // TODO Handle the exception
                 }
-
             }
         });
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
