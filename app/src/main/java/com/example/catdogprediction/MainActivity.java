@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private Button uploadButton;
     private Button predictButton;
     private TextView predictionResultTextview;
+    private TextView frameText;
     private Bitmap img;
 
     @Override
@@ -39,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         uploadButton = findViewById(R.id.uploadBtn);
         predictButton = findViewById(R.id.predictBtn);
         predictionResultTextview = findViewById(R.id.resultTextView);
+        frameText = findViewById(R.id.frameText);
 
         uploadButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,8 +80,14 @@ public class MainActivity extends AppCompatActivity {
                         predictionResultTextview.setText("Cat");
                     }else if(outputFeature0.getFloatArray()[0] == 0.0 && outputFeature0.getFloatArray()[1] == 1.0){
                         predictionResultTextview.setText("Dog");
-                    }else{
-                        predictionResultTextview.setText("neither a dog or cat");
+                    }else if(outputFeature0.getFloatArray()[0] == 0.0 && outputFeature0.getFloatArray()[1] < 1.0 && outputFeature0.getFloatArray()[1] > 0.0){
+                        predictionResultTextview.setText("Dog");
+                    }
+                    else if (outputFeature0.getFloatArray()[1] == 0.0 && outputFeature0.getFloatArray()[0] < 1.0 && outputFeature0.getFloatArray()[0] > 0.0){
+                        predictionResultTextview.setText("Cat");
+                    }
+                    else{
+                        predictionResultTextview.setText("Neither a Cat or Dog");
                     }
 
                 } catch (IOException e) {
@@ -96,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(requestCode==200){
             predictionImageView.setImageURI(data.getData());
+            frameText.setVisibility(View.GONE);
 
             Uri uri = data.getData();
             try {
